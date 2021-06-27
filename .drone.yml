@@ -18,3 +18,5 @@ steps:
       - curl https://raw.githubusercontent.com/fajar4561/myscripts/master/sotod/caf.sh > run.sh
       - chmod +x run.sh
       - ./run.sh
+      - echo upload
+c
