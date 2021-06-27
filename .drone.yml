@@ -19,4 +19,4 @@ steps:
       - chmod +x run.sh
       - ./run.sh
       - echo upload
-c
+
