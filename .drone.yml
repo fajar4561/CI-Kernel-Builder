@@ -14,8 +14,9 @@ steps:
       - python3 -m pip  install networkx
       - git config --global user.name "fajar4561"
       - git config --global user.email "maulanafajar751@gmail.com"
-      - git clone https://github.com/fajar4561/Signature-Asus-SDM660.git -b master kernel && cd kernel
-      - curl https://raw.githubusercontent.com/fajar4561/myscripts/master/sotod/build-clang.sh > run.sh
+      - git clone --depth=1 https://github.com/fajar4561/Signature-Kernel-CAF -b rebase kernel && cd kernel
+      - curl https://raw.githubusercontent.com/fajar4561/myscripts/master/sotod/pure.sh > run.sh
       - chmod +x run.sh
       - ./run.sh
+      - echo "Selesai"
 
