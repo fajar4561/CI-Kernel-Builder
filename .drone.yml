@@ -14,7 +14,7 @@ steps:
       - python3 -m pip  install networkx
       - git config --global user.name "fajar4561"
       - git config --global user.email "maulanafajar751@gmail.com"
-      - git clone https://github.com/fajar4561/Signature-Asus-SDM660 -b eas kernel && cd kernel
+      - git clone https://github.com/fajar4561/Signature-Asus-SDM660 -b eas-stock kernel && cd kernel
       - curl https://raw.githubusercontent.com/fajar4561/myscripts/master/sotod/eas-clang.sh > run.sh
       - chmod +x run.sh
       - ./run.sh
