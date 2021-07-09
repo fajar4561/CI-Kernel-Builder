@@ -16,6 +16,6 @@ steps:
    commands:
       - git config --global user.name "$AWAL"
       - git config --global user.email "maulanafajar751@gmail.com"
-      - git clone --depth=1 https://$AWAL:$AKHIR@github.com/fajar4561/Kernel_Asus_SDM660 -b eas kernel && cd kernel
+      - git clone --depth=1 https://$AWAL:$AKHIR@github.com/fajar4561/Signature-Kernel-Project -b eas kernel && cd kernel
       - curl https://raw.githubusercontent.com/fajar4561/My-kernel-builder/build/build.sh > run.sh
       - bash run.sh
