@@ -55,11 +55,11 @@ DEFCONFIG=X00TD_defconfig
 MANUFACTURERINFO="ASUSTek Computer Inc."
 
 # Kernel Variant
-NAMA=KENKO
+NAMA=Signature
 
-JENIS=EAS
+JENIS=Caf
 
-VARIAN=CAF
+VARIAN=FlameFox
 # Build Type
 BUILD_TYPE="Nightly"
 
