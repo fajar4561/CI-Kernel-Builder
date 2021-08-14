@@ -59,7 +59,7 @@ NAMA=Signature
 
 JENIS=Caf
 
-VARIAN=FlameFox
+VARIAN=Eas
 # Build Type
 BUILD_TYPE="Nightly"
 
