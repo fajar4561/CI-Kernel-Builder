@@ -57,15 +57,18 @@ MANUFACTURERINFO="ASUSTek Computer Inc."
 # Kernel Variant
 NAMA=Signature
 
-JENIS=Caf
+JENIS=LV
 
-VARIAN=Eas
+VARIAN=Dirty
 # Build Type
 BUILD_TYPE="Nightly"
 
 # Specify compiler.
-# 'clang' or 'clangxgcc' or 'gcc'
-COMPILER=clang
+# 'clang' or 'clangxgcc' or 'gcc' or 'gcc49'
+COMPILER=gcc49
+
+# Message on anykernel when installation
+MESSAGE="don't blame me if u get poor battery backup or weak performance . i'm not responsible . Do with Your Own Risk."
 
 # Kernel is LTO
 LTO=0
@@ -140,20 +143,25 @@ DATE2=$(TZ=Asia/Jakarta date +"%Y%m%d")
 		msg "|| Cloning toolchain ||"
 		git clone --depth=1 https://github.com/fajar4561/SignatureTC_Clang -b master clang
 
-	elif [ $COMPILER = "gcc" ]
+	elif [ $COMPILER = "gcc49" ]
 	then
 		msg "|| Cloning GCC  ||"
 		git clone --depth=1 https://github.com/Thoreck-project/aarch64-linux-android-4.9 $KERNEL_DIR/gcc64
 		git clone --depth=1 https://github.com/Thoreck-project/arm-linux-androideabi-4.9 $KERNEL_DIR/gcc32
+	elif [ $COMPILER = "gcc" ]
+	then
+		msg "|| Cloning GCC  ||"
+		git clone --depth=1 https://github.com/Thoreck-project/gcc-linaro-6.5.0  $KERNEL_DIR/gcc64
+		git clone --depth=1 https://github.com/Thoreck-project/arm-linux-gnueabi-gcc9 -b stable-gcc $KERNEL_DIR/gcc32
 
 	elif [ $COMPILER = "clangxgcc" ]
 	then
 		msg "|| Cloning toolchain ||"
-		git clone --depth=1 https://github.com/fajar4561/DragonTC -b 10.0 clang
+		git clone --depth=1 https://github.com/Thoreck-project/DragonTC -b 10.0 clang
 
 		msg "|| Cloning GCC ||"
-		git clone --depth=1 https://github.com/Thoreck-project/aarch64-linux-android -b opt-gnu-8.x gcc64 
-		git clone --depth=1 https://github.com/Thoreck-project/arm-linux-androideabi gcc32 
+		git clone --depth=1 https://github.com/Thoreck-project/aarch64-linux-gnu-gcc9.git -b stable-gcc gcc64
+		git clone --depth=1 https://github.com/Thoreck-project/arm-linux-gnueabi-gcc9.git -b stable-gcc gcc32
 	fi
 
 	# Toolchain Directory defaults to clang-llvm
@@ -201,9 +209,13 @@ exports() {
 	then
 		KBUILD_COMPILER_STRING=$("$TC_DIR"/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
 		PATH=$TC_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:/usr/bin:$PATH
+	elif [ $COMPILER = "gcc49" ]
+	then
+		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-android-gcc --version | head -n 1)
+		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	elif [ $COMPILER = "gcc" ]
 	then
-		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-android-gcc --version | head -n 1 | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-gnu-gcc --version | head -n 1)
 		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	fi
 
@@ -325,11 +337,16 @@ build_kernel() {
                 OBJDUMP=llvm-objdump \
                 CLANG_TRIPLE=aarch64-linux-gnu- \
 				STRIP=llvm-strip "${MAKE[@]}" 2>&1 | tee build.log
-	elif [ $COMPILER = "gcc" ]
+	elif [ $COMPILER = "gcc49" ]
 	then
 		make -j"$PROCS" O=out \
 				CROSS_COMPILE_ARM32=arm-linux-androideabi- \
 				CROSS_COMPILE=aarch64-linux-android- "${MAKE[@]}" 2>&1 | tee build.log
+	elif [ $COMPILER = "gcc" ]
+	then
+		make -j"$PROCS" O=out \
+				CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+				CROSS_COMPILE=aarch64-linux-gnu- "${MAKE[@]}" 2>&1 | tee build.log
 	elif [ $COMPILER = "clangxgcc" ]
 	then
 		make -j"$PROCS"  O=out \
@@ -381,9 +398,9 @@ gen_zip() {
 	sed -i "s/kernel.string=.*/kernel.string=$NAMA-$VARIAN/g" anykernel.sh
 	sed -i "s/kernel.for=.*/kernel.for=$JENIS/g" anykernel.sh
 	sed -i "s/kernel.compiler=.*/kernel.compiler=$KBUILD_COMPILER_STRING/g" anykernel.sh
-	sed -i "s/kernel.made=.*/kernel.made=$KBUILD_BUILD_USER @$KBUILD_BUILD_HOST/g" anykernel.sh
+	sed -i "s/kernel.made=.*/kernel.made=$KBUILD_BUILD_USER@$KBUILD_BUILD_HOST/g" anykernel.sh
 	sed -i "s/kernel.version=.*/kernel.version=$LINUXVER/g" anykernel.sh
-	sed -i "s/message.word=.*/message.word=jangan lupa ngopi sama hudud./g" anykernel.sh
+	sed -i "s/message.word=.*/message.word=$MESSAGE/g" anykernel.sh
 	sed -i "s/build.date=.*/build.date=$DATE2/g" anykernel.sh
 
 
@@ -399,16 +416,19 @@ gen_zip() {
         -F caption="✅<b>Build Done</b>
         - <code>$((DIFF / 60)) minute(s) $((DIFF % 60)) second(s) </code>
         
-        <b>Date</b>
+        <b>Date 📅 </b>
         -<code>$DATE2</code>
         
-        <b>Linux Version</b>
+        <b>Linux Version 📜</b>
         -<code>$LINUXVER</code>
         
-         <b>Compiler</b>
+         <b>Compiler 💻 </b>
         -<code>$KBUILD_COMPILER_STRING</code>
+        
+        <b>Device 📱 </b>
+        -<code>$DEVICE ($MANUFACTURERINFO)</code>
 
-        <b>Changelog</b>
+        <b>Changelog 📣 </b>
         - <code>$COMMIT_HEAD</code>
         <b></b>
         #$BUILD_TYPE #$JENIS #$VARIAN"
