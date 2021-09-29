@@ -59,7 +59,7 @@ NAMA=Signature
 
 JENIS=CAF
 
-VARIAN=V
+VARIAN=LTO
 # Build Type
 BUILD_TYPE="Nightly"
 
@@ -71,7 +71,7 @@ COMPILER=clang
 MESSAGE="don't blame me if u get poor battery backup or weak performance . i'm not responsible . Do with Your Own Risk."
 
 # Kernel is LTO
-LTO=0
+LTO=1
 
 # Specify linker.
 # 'ld.lld'(default)
