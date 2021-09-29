@@ -333,6 +333,7 @@ build_kernel() {
 				CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
 				AR=llvm-ar \
                 NM=llvm-nm \
+                LD=ld.lld \
                 OBJCOPY=llvm-objcopy \
                 OBJDUMP=llvm-objdump \
                 CLANG_TRIPLE=aarch64-linux-gnu- \
