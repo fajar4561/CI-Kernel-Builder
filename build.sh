@@ -65,13 +65,13 @@ BUILD_TYPE="Nightly"
 
 # Specify compiler.
 # 'clang' or 'clangxgcc' or 'gcc' or 'gcc49'
-COMPILER=clang
+COMPILER=gcc
 
 # Message on anykernel when installation
 MESSAGE="don't blame me if u get poor battery backup or weak performance . i'm not responsible . Do with Your Own Risk."
 
 # Kernel is LTO
-LTO=1
+LTO=0
 
 # Specify linker.
 # 'ld.lld'(default)
@@ -151,8 +151,8 @@ DATE2=$(TZ=Asia/Jakarta date +"%Y%m%d")
 	elif [ $COMPILER = "gcc" ]
 	then
 		msg "|| Cloning GCC  ||"
-		git clone --depth=1 https://github.com/Thoreck-project/gcc-linaro-6.5.0  $KERNEL_DIR/gcc64
-		git clone --depth=1 https://github.com/Thoreck-project/arm-linux-gnueabi-gcc9 -b stable-gcc $KERNEL_DIR/gcc32
+		git clone https://github.com/mvaisakh/gcc-arm64.git $KERNEL_DIR/gcc64 --depth=1
+        git clone https://github.com/mvaisakh/gcc-arm.git $KERNEL_DIR/gcc32 --depth=1
 
 	elif [ $COMPILER = "clangxgcc" ]
 	then
@@ -215,7 +215,7 @@ exports() {
 		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	elif [ $COMPILER = "gcc" ]
 	then
-		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-gnu-gcc --version | head -n 1)
+		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-elf-gcc --version | head -n 1)
 		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	fi
 
@@ -346,8 +346,12 @@ build_kernel() {
 	elif [ $COMPILER = "gcc" ]
 	then
 		make -j"$PROCS" O=out \
-				CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-				CROSS_COMPILE=aarch64-linux-gnu- "${MAKE[@]}" 2>&1 | tee build.log
+				CROSS_COMPILE_ARM32=arm-eabi- \
+				CROSS_COMPILE=aarch64-elf- \
+				AR=aarch64-elf-ar \
+				OBJDUMP=aarch64-elf-objdump \
+				STRIP=aarch64-elf-strip  \
+				LD="ld.lld" "${MAKE[@]}" 2>&1 | tee build.log
 	elif [ $COMPILER = "clangxgcc" ]
 	then
 		make -j"$PROCS"  O=out \
