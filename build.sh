@@ -57,9 +57,9 @@ MANUFACTURERINFO="ASUSTek Computer Inc."
 # Kernel Variant
 NAMA=Signature
 
-JENIS=CAF
+JENIS=Hmp
 
-VARIAN=LTO
+VARIAN=LTO-Bold
 # Build Type
 BUILD_TYPE="Nightly"
 
@@ -151,8 +151,8 @@ DATE2=$(TZ=Asia/Jakarta date +"%Y%m%d")
 	elif [ $COMPILER = "gcc" ]
 	then
 		msg "|| Cloning GCC  ||"
-		git clone https://github.com/mvaisakh/gcc-arm64.git $KERNEL_DIR/gcc64 --depth=1
-        git clone https://github.com/mvaisakh/gcc-arm.git $KERNEL_DIR/gcc32 --depth=1
+		git clone https://github.com/fajar4561/gcc-arm64.git $KERNEL_DIR/gcc64 --depth=1
+        git clone https://github.com/fajar4561/gcc-arm.git $KERNEL_DIR/gcc32 --depth=1
 
 	elif [ $COMPILER = "clangxgcc" ]
 	then
@@ -328,16 +328,15 @@ build_kernel() {
 	if [ $COMPILER = "clang" ]
 	then
 		make -j"$PROCS" O=out \
-		        CC=clang \
-				CROSS_COMPILE=aarch64-linux-gnu- \
-				CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-				AR=llvm-ar \
-                NM=llvm-nm \
-                LD=ld.lld \
-                OBJCOPY=llvm-objcopy \
-                OBJDUMP=llvm-objdump \
-                CLANG_TRIPLE=aarch64-linux-gnu- \
-				STRIP=llvm-strip "${MAKE[@]}" 2>&1 | tee build.log
+		CC=clang \
+		CROSS_COMPILE=aarch64-linux-gnu- \
+	    CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+	    AR=llvm-ar \
+        NM=llvm-nm \
+        OBJCOPY=llvm-objcopy \
+        OBJDUMP=llvm-objdump \
+        CLANG_TRIPLE=aarch64-linux-gnu- \
+		STRIP=llvm-strip "${MAKE[@]}" 2>&1 | tee build.log
 	elif [ $COMPILER = "gcc49" ]
 	then
 		make -j"$PROCS" O=out \
