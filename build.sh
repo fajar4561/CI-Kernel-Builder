@@ -57,9 +57,9 @@ MANUFACTURERINFO="ASUSTek Computer Inc."
 # Kernel Variant
 NAMA=Signature
 
-JENIS=Hmp
+JENIS=CAF
 
-VARIAN=LTO-Bold
+VARIAN=LTO
 # Build Type
 BUILD_TYPE="Nightly"
 
