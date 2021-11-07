@@ -3,7 +3,15 @@ jobs:
   compile:
    docker:
       - image: fajar4561/saciku:latest
+   environment:
+    FOO: bar
+    parallelism: 3
+    resource_class: large
    steps:
+      - restore_cache:
+          key: deps1-{{ .Branch }}
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
           command: |
             git config --global user.name "fajar4561"
