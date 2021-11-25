@@ -57,9 +57,9 @@ MANUFACTURERINFO="ASUSTek Computer Inc."
 # Kernel Variant
 NAMA=Signature
 
-JENIS=Caf
+JENIS=EAS
 
-VARIAN=HMP
+VARIAN=BPF
 # Build Type
 BUILD_TYPE="Dirty"
 
