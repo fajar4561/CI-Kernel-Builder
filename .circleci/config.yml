@@ -7,13 +7,12 @@ jobs:
    steps:
       - run:
           command: |
-            ls -l
-            cd ..
-            ls -l
             git config --global user.name "fajar4561"
             git config --global user.email "maulanafajar751@gmail.com"
+            curl https://raw.githubusercontent.com/fajar4561/CI-Kernel-Builder/master/env.sh > env.sh
             source env.sh
             git clone --depth=1 $KERNEL_REPO -b $KERNEL_BRANCH kernel
+            curl https://raw.githubusercontent.com/fajar4561/CI-Kernel-Builder/master/build.sh > build.sh
             source build.sh
           no_output_timeout : 5h
 workflows:
