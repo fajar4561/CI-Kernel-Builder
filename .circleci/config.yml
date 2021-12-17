@@ -7,7 +7,9 @@ jobs:
    steps:
       - run:
           command: |
+            ls -l
             cd ..
+            ls -l
             git config --global user.name "fajar4561"
             git config --global user.email "maulanafajar751@gmail.com"
             source env.sh
