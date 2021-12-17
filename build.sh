@@ -19,6 +19,9 @@
  
 #Kernel building script
 
+# Change to kernel directori
+cd kernel
+
 # Function to show an informational message
 msg() {
 	echo
@@ -41,34 +44,9 @@ cdir() {
 # The defult directory where the kernel should be placed
 KERNEL_DIR=$PWD
 
-# The name of the device for which the kernel is built
-MODEL="Asus Zenfone Max Pro M1"
-
-# The codename of the device
-DEVICE="X00TD"
-
-# The defconfig which should be used. Get it from config.gz from
-# your device or check source
-DEFCONFIG=X00TD_defconfig
-
-# Show manufacturer info
-MANUFACTURERINFO="ASUSTek Computer Inc."
-
-# Kernel Variant
-NAMA=Signature
-
-JENIS=EAS
-
-VARIAN=BPF
-# Build Type
-BUILD_TYPE="Dirty"
-
-# Specify compiler.
-# 'clang' or 'clangxgcc' or 'gcc' or 'gcc49'
-COMPILER=gcc49
-
-# Message on anykernel when installation
-MESSAGE="don't blame me if u get poor battery backup or weak performance . i'm not responsible . Do with Your Own Risk."
+# Os info
+CORE=$(nproc --all)
+OS_VERSION=$(cat /etc/issue)
 
 # Kernel is LTO
 LTO=0
@@ -122,9 +100,6 @@ LOG_DEBUG=1
 ##------------------------------------------------------##
 ##---------Do Not Touch Anything Beyond This------------##
 
-# Check if we are using a dedicated CI ( Continuous Integration ), and
-# set KBUILD_BUILD_VERSION and KBUILD_BUILD_HOST and CI_BRANCH
-
 #Check Kernel Version
 LINUXVER=$(make kernelversion)
 
@@ -140,28 +115,44 @@ DATE2=$(TZ=Asia/Jakarta date +"%Y%m%d")
 	echo " "
 	if [ $COMPILER = "clang" ]
 	then
-		msg "|| Cloning toolchain ||"
+		msg "|| Cloning clang ||"
 		git clone --depth=1 https://github.com/fajar4561/SignatureTC_Clang -b master clang
 
 	elif [ $COMPILER = "gcc49" ]
 	then
-		msg "|| Cloning GCC  ||"
+		msg "|| Cloning GCC 64  ||"
 		git clone --depth=1 https://github.com/Thoreck-project/aarch64-linux-android-4.9 $KERNEL_DIR/gcc64
+		msg "|| Cloning GCC 32  ||"
 		git clone --depth=1 https://github.com/Thoreck-project/arm-linux-androideabi-4.9 $KERNEL_DIR/gcc32
 	elif [ $COMPILER = "gcc" ]
 	then
-		msg "|| Cloning GCC  ||"
+		msg "|| Cloning GCC 64  ||"
 		git clone https://github.com/fajar4561/gcc-arm64.git $KERNEL_DIR/gcc64 --depth=1
+		msg "|| Cloning GCC 32  ||"
         git clone https://github.com/fajar4561/gcc-arm.git $KERNEL_DIR/gcc32 --depth=1
 
 	elif [ $COMPILER = "clangxgcc" ]
 	then
 		msg "|| Cloning toolchain ||"
 		git clone --depth=1 https://github.com/Thoreck-project/DragonTC -b 10.0 clang
-
-		msg "|| Cloning GCC ||"
-		git clone --depth=1 https://github.com/Thoreck-project/aarch64-linux-gnu-gcc9.git -b stable-gcc gcc64
-		git clone --depth=1 https://github.com/Thoreck-project/arm-linux-gnueabi-gcc9.git -b stable-gcc gcc32
+		msg "|| Cloning GCC 64  ||"
+		git clone --depth=1 https://github.com/Thoreck-project/aarch64-linux-gnu-1 -b stable-gcc gcc64
+		msg "|| Cloning GCC 32  ||"
+		git clone --depth=1 https://github.com/Thoreck-project/arm-linux-gnueabi -b stable-gcc gcc32
+		
+	elif [ $COMPILER = "linaro" ]
+	then
+		msg "|| Cloning GCC 64  ||"
+		git clone --depth=1 https://github.com/Thoreck-project/aarch64-linux-gnu -b linaro8-20190402 gcc64
+		msg "|| Cloning GCC 32  ||"
+		git clone --depth=1 https://github.com/Thoreck-project/arm-linux-gnueabi -b stable-gcc gcc32
+		
+	elif [ $COMPILER = "gcc2" ]
+	then
+		msg "|| Cloning GCC 64  ||"
+		git clone --depth=1 https://github.com/Thoreck-project/aarch64-linux-gnu -b gcc8-201903-A gcc64
+		msg "|| Cloning GCC 32  ||"
+		git clone --depth=1 https://github.com/Thoreck-project/arm-linux-gnueabi -b stable-gcc gcc32
 	fi
 
 	# Toolchain Directory defaults to clang-llvm
@@ -195,11 +186,11 @@ setversioning() {
 ##--------------------------------------------------------------##
 
 exports() {
-	export KBUILD_BUILD_USER="Nobody"
-    export KBUILD_BUILD_HOST="Unknown"
-    export KBUILD_BUILD_VERSION="1"
-	export ARCH=arm64
-	export SUBARCH=arm64
+	export KBUILD_BUILD_USER=$K_USER
+    export KBUILD_BUILD_HOST=$K_HOST
+    export KBUILD_BUILD_VERSION=$K_VERSION
+	export ARCH=$K_ARCH
+	export SUBARCH=$K_SUBARCH
 
 	if [ $COMPILER = "clang" ]
 	then
@@ -211,11 +202,19 @@ exports() {
 		PATH=$TC_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:/usr/bin:$PATH
 	elif [ $COMPILER = "gcc49" ]
 	then
-		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-android-gcc --version | head -n 1)
+		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-android-gcc --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
 		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	elif [ $COMPILER = "gcc" ]
 	then
 		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-elf-gcc --version | head -n 1)
+		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
+	elif [ $COMPILER = "gcc2" ]
+	then
+		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-gnu --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
+	elif [ $COMPILER = "linaro" ]
+	then
+		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-gnu --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
 		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	fi
 
@@ -336,12 +335,14 @@ build_kernel() {
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
         CLANG_TRIPLE=aarch64-linux-gnu- \
-		STRIP=llvm-strip "${MAKE[@]}" 2>&1 | tee build.log
+		STRIP=llvm-strip \
+		 "${MAKE[@]}" 2>&1 | tee build.log
 	elif [ $COMPILER = "gcc49" ]
 	then
 		make -j"$PROCS" O=out \
 				CROSS_COMPILE_ARM32=arm-linux-androideabi- \
-				CROSS_COMPILE=aarch64-linux-android- "${MAKE[@]}" 2>&1 | tee build.log
+				CROSS_COMPILE=aarch64-linux-android- \
+				"${MAKE[@]}" 2>&1 | tee build.log
 	elif [ $COMPILER = "gcc" ]
 	then
 		make -j"$PROCS" O=out \
@@ -350,7 +351,8 @@ build_kernel() {
 				AR=aarch64-elf-ar \
 				OBJDUMP=aarch64-elf-objdump \
 				STRIP=aarch64-elf-strip  \
-				LD="ld.lld" "${MAKE[@]}" 2>&1 | tee build.log
+				LD="ld.lld" \
+				"${MAKE[@]}" 2>&1 | tee build.log
 	elif [ $COMPILER = "clangxgcc" ]
 	then
 		make -j"$PROCS"  O=out \
@@ -362,7 +364,8 @@ build_kernel() {
                     OBJCOPY=llvm-objcopy \
                     OBJDUMP=llvm-objdump \
                     CLANG_TRIPLE=aarch64-linux-gnu- \
-				    STRIP=llvm-strip "${MAKE[@]}" 2>&1 | tee build.log
+				    STRIP=llvm-strip \
+				     "${MAKE[@]}" 2>&1 | tee build.log
 	fi
 
 		BUILD_END=$(date +"%s")
@@ -426,15 +429,21 @@ gen_zip() {
         <b>Linux Version 📜</b>
         -<code>$LINUXVER</code>
         
-         <b>Compiler 💻 </b>
+        <b>CPU 💻 </b>
+        -<code>$CORE Cores</code>
+        
+        <b>OS 📺 </b>
+        -<code>$OS_VERSION</code>
+        
+         <b>Compiler ⚙️ </b>
         -<code>$KBUILD_COMPILER_STRING</code>
         
         <b>Device 📱 </b>
         -<code>$DEVICE ($MANUFACTURERINFO)</code>
-
+         
         <b>Changelog 📣 </b>
         - <code>$COMMIT_HEAD</code>
-        <b></b>
+   
         #$BUILD_TYPE #$JENIS #$VARIAN"
         
 	cd ..
