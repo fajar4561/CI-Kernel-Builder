@@ -19,7 +19,7 @@
  
 #Kernel building script
 
-# Change to kernel directori
+#change kernel dir
 cd kernel
 
 # Function to show an informational message
@@ -44,9 +44,10 @@ cdir() {
 # The defult directory where the kernel should be placed
 KERNEL_DIR=$PWD
 
-# Os info
+# Server info
 CORE=$(nproc --all)
 OS_VERSION=$(cat /etc/issue)
+CPU_MODEL=$(lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1')
 
 # Kernel is LTO
 LTO=0
@@ -202,7 +203,7 @@ exports() {
 		PATH=$TC_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:/usr/bin:$PATH
 	elif [ $COMPILER = "gcc49" ]
 	then
-		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-android-gcc --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-android-gcc --version | head -n 1 )
 		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	elif [ $COMPILER = "gcc" ]
 	then
@@ -210,11 +211,11 @@ exports() {
 		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	elif [ $COMPILER = "gcc2" ]
 	then
-		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-gnu --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-gnu-gcc --version | head -n 1 )
 		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	elif [ $COMPILER = "linaro" ]
 	then
-		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-gnu --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-linux-gnu-gcc --version | head -n 1 )
 		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	fi
 
@@ -343,6 +344,18 @@ build_kernel() {
 				CROSS_COMPILE_ARM32=arm-linux-androideabi- \
 				CROSS_COMPILE=aarch64-linux-android- \
 				"${MAKE[@]}" 2>&1 | tee build.log
+	elif [ $COMPILER = "gcc2" ]
+	then
+		make -j"$PROCS" O=out \
+				CROSS_COMPILE=aarch64-linux-gnu- \
+				CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+				"${MAKE[@]}" 2>&1 | tee build.log
+	elif [ $COMPILER = "linaro" ]
+	then
+		make -j"$PROCS" O=out \
+				CROSS_COMPILE=aarch64-linux-gnu- \
+				CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+				"${MAKE[@]}" 2>&1 | tee build.log
 	elif [ $COMPILER = "gcc" ]
 	then
 		make -j"$PROCS" O=out \
@@ -420,28 +433,29 @@ gen_zip() {
         -F chat_id="$CHATID"  \
         -F "disable_web_page_preview=true" \
         -F "parse_mode=html" \
-        -F caption="✅<b>Build Done</b>
+        -F caption="✅ <b>Build Done</b>
         - <code>$((DIFF / 60)) minute(s) $((DIFF % 60)) second(s) </code>
         
-        <b>Date 📅 </b>
+        📅 <b>Date</b>
         -<code>$DATE2</code>
         
-        <b>Linux Version 📜</b>
+        🔖 <b>Linux Version</b>
         -<code>$LINUXVER</code>
         
-        <b>CPU 💻 </b>
+        💻 <b>CPU</b>
         -<code>$CORE Cores</code>
+        -<code>$CPU_MODEL</code>
         
-        <b>OS 📺 </b>
+        🖥 <b>OS</b>
         -<code>$OS_VERSION</code>
         
-         <b>Compiler ⚙️ </b>
+         ⚙️ <b>Compiler</b>
         -<code>$KBUILD_COMPILER_STRING</code>
         
-        <b>Device 📱 </b>
+       📱 <b>Device</b>
         -<code>$DEVICE ($MANUFACTURERINFO)</code>
          
-        <b>Changelog 📣 </b>
+        📣 <b>Changelog</b>
         - <code>$COMMIT_HEAD</code>
    
         #$BUILD_TYPE #$JENIS #$VARIAN"
